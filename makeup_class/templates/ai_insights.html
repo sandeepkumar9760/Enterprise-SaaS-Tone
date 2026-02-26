@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Insights - Make-Up Class Management</title>
+  <style>
+:root {
+  --color-bg-primary: #0f1419;
+  --color-bg-secondary: #1a1f2e;
+  --color-bg-tertiary: #242d3d;
+  --color-bg-hover: #2d3647;
+  --color-primary: #3b82f6;
+  --color-primary-dark: #1e40af;
+  --color-accent: #06b6d4;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-tertiary: #94a3b8;
+  --color-border: #334155;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 32px;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --transition-fast: 150ms ease-in-out;
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-family-base); background: var(--color-bg-primary); color: var(--color-text-primary); }
+
+h1 { font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); margin-bottom: 1rem; }
+h2 { font-size: var(--font-size-2xl); font-weight: var(--font-weight-semibold); margin-bottom: 1rem; }
+h3 { font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); }
+p { color: var(--color-text-secondary); }
+
+.layout { display: flex; min-height: 100vh; }
+.sidebar { position: fixed; left: 0; top: 0; width: 280px; height: 100vh; background: var(--color-bg-secondary); border-right: 1px solid var(--color-border); padding: var(--space-8) 0; overflow-y: auto; z-index: 100; }
+.sidebar.collapsed { transform: translateX(-100%); }
+.sidebar-header { padding: 0 var(--space-6); margin-bottom: var(--space-8); display: flex; align-items: center; gap: var(--space-3); }
+.sidebar-logo { width: 40px; height: 40px; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; color: white; font-weight: var(--font-weight-bold); }
+.sidebar-title { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+.sidebar-nav { list-style: none; display: flex; flex-direction: column; gap: var(--space-2); padding: 0 var(--space-4); }
+.nav-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); color: var(--color-text-secondary); text-decoration: none; font-size: var(--font-size-sm); border-left: 3px solid transparent; cursor: pointer; }
+.nav-item.active { background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border-left-color: var(--color-primary); }
+
+.main-content { flex: 1; margin-left: 280px; display: flex; flex-direction: column; }
+.main-content.expanded { margin-left: 0; }
+
+.top-nav { position: sticky; top: 0; background: var(--color-bg-secondary); border-bottom: 1px solid var(--color-border); padding: var(--space-4) var(--space-8); display: flex; align-items: center; justify-content: space-between; }
+.nav-toggle { width: 40px; height: 40px; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; }
+.breadcrumb { display: flex; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-text-tertiary); }
+.search-input { background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-2) var(--space-4); color: var(--color-text-primary); width: 240px; }
+.icon-btn { width: 40px; height: 40px; background: transparent; border: none; cursor: pointer; color: var(--color-text-secondary); }
+
+.page-container { flex: 1; padding: var(--space-8); overflow-y: auto; }
+.page-header { margin-bottom: var(--space-8); }
+
+.card { background: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: 2rem; }
+.card:hover { border-color: var(--color-border); box-shadow: var(--shadow-md); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4); padding-bottom: var(--space-4); border-bottom: 1px solid var(--color-border); }
+.card-title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); }
+
+.badge { display: inline-flex; align-items: center; padding: var(--space-1) var(--space-3); border-radius: 9999px; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+.badge-warning { background: rgba(245, 158, 11, 0.2); color: var(--color-warning); }
+
+.btn { background: var(--color-primary); color: white; border: none; border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); cursor: pointer; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+.btn:hover { background: var(--color-primary-dark); }
+.btn-sm { padding: var(--space-2) var(--space-3); font-size: var(--font-size-sm); }
+
+.grid { display: grid; gap: var(--space-6); margin-bottom: 2rem; }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+
+.recommendations-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-6); }
+
+.switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: 0.3s; border-radius: 28px; }
+.slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background-color: white; transition: 0.3s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--color-primary); }
+input:checked + .slider:before { transform: translateX(22px); }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">M</div>
+        <div class="sidebar-title">Make-Up Classes</div>
+      </div>
+      <nav>
+        <ul class="sidebar-nav">
+          <li><a href="index.html" class="nav-item"><span>📊</span><span>Dashboard</span></a></li>
+          <li><a href="faculty.html" class="nav-item"><span>👨‍🏫</span><span>Faculty Control</span></a></li>
+          <li><a href="student.html" class="nav-item"><span>👨‍🎓</span><span>Student Portal</span></a></li>
+          <li><a href="ai-insights.html" class="nav-item active"><span>🤖</span><span>AI Insights</span></a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <div class="main-content">
+      <nav class="top-nav">
+        <div style="display: flex; align-items: center; gap: var(--space-4);">
+          <button class="nav-toggle">☰</button>
+          <div class="breadcrumb"><span>Home</span><span>/</span><span>AI Insights</span></div>
+        </div>
+        <div style="display: flex; align-items: center; gap: var(--space-6);">
+          <input type="text" class="search-input" placeholder="Search insights...">
+          <button class="icon-btn">🔔</button>
+          <button class="icon-btn">⚙️</button>
+          <button class="icon-btn">👤</button>
+        </div>
+      </nav>
+
+      <div class="page-container">
+        <div class="page-header">
+          <h1>AI-Powered Intelligence</h1>
+          <p style="color: #94a3b8;">Smart predictions and recommendations powered by machine learning.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">🚀 Class Rush Prediction</div>
+              <div style="font-size: var(--font-size-sm); color: var(--color-text-tertiary);">Predicted attendance demand for the next 7 days</div>
+            </div>
+            <span class="badge badge-warning" style="font-size: 0.875rem;">⚠ Medium Risk - 65% capacity</span>
+          </div>
+          <canvas data-chart="prediction" width="600" height="300" style="width: 100%; display: block;"></canvas>
+          <div class="grid grid-2" style="margin-top: 1.5rem;">
+            <div style="background: rgba(59, 130, 246, 0.1); padding: 1rem; border-radius: 0.5rem; border-left: 3px solid var(--color-primary);">
+              <div style="font-size: 0.875rem; color: #cbd5e1; margin-bottom: 0.25rem;">Risk Score</div>
+              <div style="font-size: 1.5rem; font-weight: bold; color: var(--color-warning);">6.5/10</div>
+            </div>
+            <div style="background: rgba(245, 158, 11, 0.1); padding: 1rem; border-radius: 0.5rem; border-left: 3px solid var(--color-warning);">
+              <div style="font-size: 0.875rem; color: #cbd5e1; margin-bottom: 0.25rem;">Confidence</div>
+              <div style="font-size: 1.5rem; font-weight: bold; color: var(--color-warning);">92%</div>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.1); padding: 1rem; border-radius: 0.5rem; border-left: 3px solid var(--color-success);">
+              <div style="font-size: 0.875rem; color: #cbd5e1; margin-bottom: 0.25rem;">Peak Time</div>
+              <div style="font-size: 1.5rem; font-weight: bold; color: var(--color-success);">2:00 PM</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+          <h2>💡 Smart Scheduling Recommendations</h2>
+          <div class="recommendations-grid"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">🔔 Automated Alerts</div></div>
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--color-bg-tertiary); border-radius: 0.5rem;">
+              <div>
+                <div style="font-weight: 600; margin-bottom: 0.25rem;">Low Attendance Warning</div>
+                <div style="font-size: 0.875rem; color: #94a3b8;">Notify when attendance falls below 80%</div>
+              </div>
+              <label class="switch"><input type="checkbox" class="alert-toggle" checked><span class="slider"></span></label>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--color-bg-tertiary); border-radius: 0.5rem;">
+              <div>
+                <div style="font-weight: 600; margin-bottom: 0.25rem;">Unusual Pattern Detection</div>
+                <div style="font-size: 0.875rem; color: #94a3b8;">Alert on anomalies in attendance patterns</div>
+              </div>
+              <label class="switch"><input type="checkbox" class="alert-toggle" checked><span class="slider"></span></label>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--color-bg-tertiary); border-radius: 0.5rem;">
+              <div>
+                <div style="font-weight: 600; margin-bottom: 0.25rem;">Daily Summary Report</div>
+                <div style="font-size: 0.875rem; color: #94a3b8;">Get daily insights and metrics summary</div>
+              </div>
+              <label class="switch"><input type="checkbox" class="alert-toggle" checked><span class="slider"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">📋 Recent System Alerts</div></div>
+          <div style="border-top: 1px solid var(--color-border);">
+            <div style="padding: 1rem; border-bottom: 1px solid var(--color-border); display: flex; align-items: start; gap: 1rem;">
+              <div style="color: var(--color-warning); font-size: 1.25rem; flex-shrink: 0;">⚠</div>
+              <div>
+                <div style="font-weight: 600; margin-bottom: 0.25rem;">Mathematics Classes - High Demand</div>
+                <p style="font-size: 0.875rem; color: #94a3b8;">3 additional make-up sessions recommended for the next week.</p>
+                <button class="btn btn-sm" style="margin-top: 0.5rem;">Review</button>
+              </div>
+            </div>
+            <div style="padding: 1rem; border-bottom: 1px solid var(--color-border); display: flex; align-items: start; gap: 1rem;">
+              <div style="color: var(--color-success); font-size: 1.25rem; flex-shrink: 0;">✓</div>
+              <div>
+                <div style="font-weight: 600; margin-bottom: 0.25rem;">Attendance Milestone Reached</div>
+                <p style="font-size: 0.875rem; color: #94a3b8;">Overall system attendance has crossed 90% threshold.</p>
+              </div>
+            </div>
+            <div style="padding: 1rem; display: flex; align-items: start; gap: 1rem;">
+              <div style="color: var(--color-primary); font-size: 1.25rem; flex-shrink: 0;">ℹ</div>
+              <div>
+                <div style="font-weight: 600; margin-bottom: 0.25rem;">System Maintenance Scheduled</div>
+                <p style="font-size: 0.875rem; color: #94a3b8;">Database optimization scheduled for next Sunday 2 AM.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">How AI Insights Work</div></div>
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div>
+              <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">🤖 Machine Learning Analysis</h3>
+              <p style="font-size: 0.875rem;">Our AI analyzes historical attendance patterns, time-of-day trends, and external factors to predict future demand.</p>
+            </div>
+            <div>
+              <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">📊 Predictive Analytics</h3>
+              <p style="font-size: 0.875rem;">Real-time risk assessment and confidence scores help you make data-driven scheduling decisions.</p>
+            </div>
+            <div>
+              <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">🎯 Smart Recommendations</h3>
+              <p style="font-size: 0.875rem;">Personalized suggestions for optimal class scheduling, resource allocation, and student engagement.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+class LayoutManager {
+  constructor() {
+    const toggle = document.querySelector('.nav-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const main = document.querySelector('.main-content');
+    if (toggle) toggle.addEventListener('click', () => {
+      sidebar?.classList.toggle('collapsed');
+      main?.classList.toggle('expanded');
+    });
+  }
+}
+
+class AIInsightsPage {
+  constructor() {
+    this.init();
+  }
+  init() {
+    this.renderPredictionChart();
+    this.renderRecommendations();
+    this.setupAlertToggles();
+  }
+  renderPredictionChart() {
+    const canvas = document.querySelector('[data-chart="prediction"]');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width, height = canvas.height;
+    ctx.fillStyle = '#1a1f2e';
+    ctx.fillRect(0, 0, width, height);
+    const zoneHeight = height / 3;
+    ctx.fillStyle = 'rgba(16, 185, 129, 0.1)';
+    ctx.fillRect(0, height - zoneHeight, width, zoneHeight);
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.1)';
+    ctx.fillRect(0, height - zoneHeight * 2, width, zoneHeight);
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.1)';
+    ctx.fillRect(0, 0, width, zoneHeight);
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('High Risk', 10, 25);
+    ctx.fillText('Medium Risk', 10, height / 2 + 10);
+    ctx.fillText('Low Risk', 10, height - 10);
+    const data = [25, 35, 45, 55, 70, 65, 75];
+    const points = [];
+    const pointWidth = (width - 60) / (data.length - 1);
+    const scale = (height - 40) / 100;
+    data.forEach((value, index) => {
+      const x = 40 + pointWidth * index;
+      const y = height - 20 - value * scale;
+      points.push({ x, y });
+    });
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    points.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.stroke();
+    points.forEach(p => {
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#0f1419';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+  renderRecommendations() {
+    const container = document.querySelector('.recommendations-grid');
+    const recommendations = [
+      { priority: 'high', title: 'Increase Physics Classes', description: 'Students are struggling with this subject.' },
+      { priority: 'medium', title: 'Schedule Weekend Session', description: 'Better attendance on weekends observed.' },
+      { priority: 'low', title: 'Extend Chemistry Lab', description: 'Positive feedback from recent sessions.' },
+    ];
+    container.innerHTML = recommendations.map(rec => `
+      <div class="card">
+        <div style="display: flex; align-items: start; gap: 1rem;">
+          <div style="color: ${rec.priority === 'high' ? '#ef4444' : rec.priority === 'medium' ? '#f59e0b' : '#10b981'}; font-weight: bold; font-size: 1.25rem;">◆</div>
+          <div style="flex: 1;">
+            <h3>${rec.title}</h3>
+            <p style="font-size: 0.875rem;">${rec.description}</p>
+            <button class="btn btn-sm" style="margin-top: 0.5rem;">Take Action</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+  setupAlertToggles() {
+    const toggles = document.querySelectorAll('.alert-toggle');
+    toggles.forEach(toggle => {
+      toggle.addEventListener('change', () => {
+        console.log('Alert toggled');
+      });
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  new LayoutManager();
+  new AIInsightsPage();
+});
+  </script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Portal - Make-Up Class Management</title>
+  <style>
+:root {
+  --color-bg-primary: #0f1419;
+  --color-bg-secondary: #1a1f2e;
+  --color-bg-tertiary: #242d3d;
+  --color-bg-hover: #2d3647;
+  --color-primary: #3b82f6;
+  --color-primary-dark: #1e40af;
+  --color-accent: #06b6d4;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-tertiary: #94a3b8;
+  --color-border: #334155;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 32px;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --transition-fast: 150ms ease-in-out;
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-family-base); background: var(--color-bg-primary); color: var(--color-text-primary); }
+
+h1 { font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); margin-bottom: 1rem; }
+h2 { font-size: var(--font-size-2xl); font-weight: var(--font-weight-semibold); margin-bottom: 1rem; }
+p { color: var(--color-text-secondary); margin-bottom: 0.5rem; }
+
+.layout { display: flex; min-height: 100vh; }
+.sidebar { position: fixed; left: 0; top: 0; width: 280px; height: 100vh; background: var(--color-bg-secondary); border-right: 1px solid var(--color-border); padding: var(--space-8) 0; overflow-y: auto; z-index: 100; }
+.sidebar.collapsed { transform: translateX(-100%); }
+.sidebar-header { padding: 0 var(--space-6); margin-bottom: var(--space-8); display: flex; align-items: center; gap: var(--space-3); }
+.sidebar-logo { width: 40px; height: 40px; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; color: white; font-weight: var(--font-weight-bold); }
+.sidebar-title { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+.sidebar-nav { list-style: none; display: flex; flex-direction: column; gap: var(--space-2); padding: 0 var(--space-4); }
+.nav-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); color: var(--color-text-secondary); text-decoration: none; font-size: var(--font-size-sm); border-left: 3px solid transparent; cursor: pointer; }
+.nav-item.active { background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border-left-color: var(--color-primary); }
+
+.main-content { flex: 1; margin-left: 280px; display: flex; flex-direction: column; }
+.main-content.expanded { margin-left: 0; }
+
+.top-nav { position: sticky; top: 0; background: var(--color-bg-secondary); border-bottom: 1px solid var(--color-border); padding: var(--space-4) var(--space-8); display: flex; align-items: center; justify-content: space-between; z-index: 50; }
+.nav-toggle { width: 40px; height: 40px; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; }
+.breadcrumb { display: flex; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-text-tertiary); }
+.search-input { background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-2) var(--space-4); color: var(--color-text-primary); width: 240px; }
+.icon-btn { width: 40px; height: 40px; background: transparent; border: none; cursor: pointer; }
+
+.page-container { flex: 1; padding: var(--space-8); overflow-y: auto; }
+.page-header { margin-bottom: var(--space-8); }
+
+.card { background: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: 2rem; }
+.card:hover { border-color: var(--color-border); box-shadow: var(--shadow-md); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4); padding-bottom: var(--space-4); border-bottom: 1px solid var(--color-border); }
+.card-title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); }
+
+.metric-card { background: linear-gradient(135deg, var(--color-bg-secondary), var(--color-bg-tertiary)); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); }
+.metric-label { font-size: var(--font-size-sm); color: var(--color-text-tertiary); margin-bottom: var(--space-2); }
+.metric-value { font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); margin-bottom: var(--space-3); }
+.metric-change { display: flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-success); }
+
+button, .btn { font-family: var(--font-family-base); border: none; border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); cursor: pointer; transition: all var(--transition-fast); display: inline-flex; align-items: center; gap: var(--space-2); }
+.btn-primary { background: var(--color-primary); color: white; }
+.btn-primary:hover { background: var(--color-primary-dark); }
+.btn-block { width: 100%; }
+
+.form-group { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
+.form-label { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text-primary); }
+.form-input { background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); color: var(--color-text-primary); font-family: var(--font-family-base); font-size: var(--font-size-base); }
+.form-input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+.form-input.success { border-color: var(--color-success); }
+.form-input.error { border-color: var(--color-error); }
+
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-6); margin-bottom: 2rem; }
+
+table { width: 100%; border-collapse: collapse; }
+th { background: var(--color-bg-tertiary); color: var(--color-text-secondary); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); text-align: left; padding: var(--space-4); border-bottom: 1px solid var(--color-border); }
+td { padding: var(--space-4); border-bottom: 1px solid var(--color-border); font-size: var(--font-size-sm); }
+tr:hover { background: rgba(59, 130, 246, 0.05); }
+
+.badge { display: inline-flex; align-items: center; padding: var(--space-1) var(--space-3); border-radius: 9999px; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+.badge-success { background: rgba(16, 185, 129, 0.2); color: var(--color-success); }
+.badge-warning { background: rgba(245, 158, 11, 0.2); color: var(--color-warning); }
+.badge-error { background: rgba(239, 68, 68, 0.2); color: var(--color-error); }
+
+.grid { display: grid; gap: var(--space-6); }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+
+.table-container { overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">M</div>
+        <div class="sidebar-title">Make-Up Classes</div>
+      </div>
+      <nav>
+        <ul class="sidebar-nav">
+          <li><a href="index.html" class="nav-item"><span>📊</span><span>Dashboard</span></a></li>
+          <li><a href="faculty.html" class="nav-item"><span>👨‍🏫</span><span>Faculty Control</span></a></li>
+          <li><a href="student.html" class="nav-item active"><span>👨‍🎓</span><span>Student Portal</span></a></li>
+          <li><a href="ai-insights.html" class="nav-item"><span>🤖</span><span>AI Insights</span></a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <div class="main-content">
+      <nav class="top-nav">
+        <div style="display: flex; align-items: center; gap: var(--space-4);">
+          <button class="nav-toggle">☰</button>
+          <div class="breadcrumb"><span>Home</span><span>/</span><span>Student Portal</span></div>
+        </div>
+        <div style="display: flex; align-items: center; gap: var(--space-6);">
+          <input type="text" class="search-input" placeholder="Search attendance...">
+          <button class="icon-btn">🔔</button>
+          <button class="icon-btn">⚙️</button>
+          <button class="icon-btn">👤</button>
+        </div>
+      </nav>
+
+      <div class="page-container">
+        <div class="page-header">
+          <h1>Student Attendance Portal</h1>
+          <p style="color: #94a3b8;">Mark your attendance for make-up classes and remedial sessions.</p>
+        </div>
+
+        <div class="card" style="max-width: 500px;">
+          <div class="card-header" style="border-bottom: none; padding-bottom: 0;">
+            <div class="card-title">Mark Attendance</div>
+          </div>
+          <div style="padding: var(--space-6);">
+            <div class="form-group">
+              <label class="form-label">Enter Remedial Code *</label>
+              <input type="text" class="form-input" data-input="remedial-code" placeholder="e.g., RC-2024-0001" style="text-transform: uppercase; letter-spacing: 1px; font-family: monospace;">
+              <small style="color: #94a3b8; margin-top: 0.5rem; display: block;">Enter the code provided by your instructor.</small>
+            </div>
+            <button class="btn btn-primary btn-block" data-action="submit-attendance" style="padding: 0.75rem 1rem; margin-top: 1.5rem;">✓ Mark Attendance</button>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">Total Sessions Attended</div>
+            <div class="metric-value">3</div>
+            <div class="metric-change"><span>↗</span><span>On track</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Attendance Rate</div>
+            <div class="metric-value">100%</div>
+            <div class="metric-change"><span>✓</span><span>Perfect record</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Pending Sessions</div>
+            <div class="metric-value">2</div>
+            <div class="metric-change" style="color: var(--color-error);"><span>↘</span><span>Upcoming</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Attendance History</div></div>
+          <div class="table-container">
+            <table class="attendance-history">
+              <thead><tr><th>Remedial Code</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <h3 style="color: var(--color-success);">✓ Present</h3>
+            <p style="font-size: 0.875rem;">You attended the session on time.</p>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--color-warning);">⚠ Late</h3>
+            <p style="font-size: 0.875rem;">You were late but attendance was marked.</p>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--color-error);">✕ Missed</h3>
+            <p style="font-size: 0.875rem;">You missed this session. Attend upcoming classes.</p>
+          </div>
+          <div class="card">
+            <h3 style="color: var(--color-text-tertiary);">◯ Pending</h3>
+            <p style="font-size: 0.875rem;">This session is upcoming or being processed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+const AppState = {
+  remedialCodes: [
+    { code: 'RC-2024-0001', subject: 'Mathematics' },
+    { code: 'RC-2024-0002', subject: 'Physics' },
+  ],
+  attendanceRecords: [
+    { id: 1, code: 'RC-2024-0001', date: '2024-02-20', time: '10:15', status: 'present' },
+    { id: 2, code: 'RC-2024-0002', date: '2024-02-21', time: '14:05', status: 'late' },
+  ],
+};
+
+const Utils = {
+  formatDate: (dateString) => new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+  showToast: (message) => console.log(message),
+};
+
+class LayoutManager {
+  constructor() {
+    const toggle = document.querySelector('.nav-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const main = document.querySelector('.main-content');
+    if (toggle) toggle.addEventListener('click', () => {
+      sidebar?.classList.toggle('collapsed');
+      main?.classList.toggle('expanded');
+    });
+  }
+}
+
+class StudentPage {
+  constructor() {
+    this.init();
+  }
+  init() {
+    this.setupCodeInput();
+    this.renderHistory();
+  }
+  setupCodeInput() {
+    const codeInput = document.querySelector('[data-input="remedial-code"]');
+    const submitBtn = document.querySelector('[data-action="submit-attendance"]');
+    if (codeInput && submitBtn) {
+      const validateCode = () => {
+        const code = codeInput.value.trim().toUpperCase();
+        const isValid = AppState.remedialCodes.some(c => c.code === code);
+        if (isValid) {
+          codeInput.classList.remove('error');
+          codeInput.classList.add('success');
+        } else if (code.length > 0) {
+          codeInput.classList.add('error');
+          codeInput.classList.remove('success');
+        } else {
+          codeInput.classList.remove('error', 'success');
+        }
+      };
+      codeInput.addEventListener('input', validateCode);
+      submitBtn.addEventListener('click', () => {
+        const code = codeInput.value.trim().toUpperCase();
+        const isValid = AppState.remedialCodes.some(c => c.code === code);
+        if (!isValid) {
+          Utils.showToast('Invalid code');
+          return;
+        }
+        AppState.attendanceRecords.push({
+          id: AppState.attendanceRecords.length + 1,
+          code,
+          date: new Date().toISOString().split('T')[0],
+          time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+          status: 'present',
+        });
+        codeInput.value = '';
+        codeInput.classList.remove('error', 'success');
+        this.renderHistory();
+      });
+    }
+  }
+  renderHistory() {
+    const tbody = document.querySelector('.attendance-history tbody');
+    tbody.innerHTML = AppState.attendanceRecords.map(record => {
+      const statusClass = record.status === 'present' ? 'badge-success' : record.status === 'late' ? 'badge-warning' : 'badge-error';
+      return `
+        <tr>
+          <td>${record.code}</td>
+          <td>${Utils.formatDate(record.date)}</td>
+          <td>${record.time || '-'}</td>
+          <td><span class="badge ${statusClass}">${record.status.charAt(0).toUpperCase() + record.status.slice(1)}</span></td>
+        </tr>
+      `;
+    }).join('');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  new LayoutManager();
+  new StudentPage();
+});
+  </script>
+</body>
+</html>

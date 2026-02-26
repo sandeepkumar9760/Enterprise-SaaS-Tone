@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Make-Up Class Management</title>
+  <style>
+:root {
+  --color-bg-primary: #0f1419;
+  --color-bg-secondary: #1a1f2e;
+  --color-bg-tertiary: #242d3d;
+  --color-bg-hover: #2d3647;
+  --color-primary: #3b82f6;
+  --color-primary-dark: #1e40af;
+  --color-primary-light: #60a5fa;
+  --color-accent: #06b6d4;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-tertiary: #94a3b8;
+  --color-border: #334155;
+  --color-border-light: #475569;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 32px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.3;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.7;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.7);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 250ms ease-in-out;
+  --transition-slow: 350ms ease-in-out;
+  --glass-bg: rgba(26, 31, 46, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: blur(10px);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-family-base); background: var(--color-bg-primary); color: var(--color-text-primary); line-height: var(--line-height-normal); overflow-x: hidden; }
+
+h1 { font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); line-height: var(--line-height-tight); color: var(--color-text-primary); margin-bottom: var(--space-4); }
+h2 { font-size: var(--font-size-2xl); font-weight: var(--font-weight-semibold); line-height: var(--line-height-tight); color: var(--color-text-primary); margin-bottom: var(--space-3); }
+h3 { font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); line-height: var(--line-height-tight); color: var(--color-text-primary); margin-bottom: var(--space-2); }
+p { font-size: var(--font-size-base); color: var(--color-text-secondary); margin-bottom: var(--space-3); }
+small { font-size: var(--font-size-xs); color: var(--color-text-tertiary); }
+
+.layout { display: flex; min-height: 100vh; background: var(--color-bg-primary); }
+.sidebar { position: fixed; left: 0; top: 0; width: 280px; height: 100vh; background: var(--color-bg-secondary); border-right: 1px solid var(--color-border); padding: var(--space-8) 0; overflow-y: auto; transition: transform var(--transition-base), width var(--transition-base); z-index: 100; }
+.sidebar.collapsed { transform: translateX(-100%); width: 0; }
+.sidebar-header { padding: 0 var(--space-6); margin-bottom: var(--space-8); display: flex; align-items: center; gap: var(--space-3); }
+.sidebar-logo { width: 40px; height: 40px; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-weight: var(--font-weight-bold); color: white; font-size: var(--font-size-lg); }
+.sidebar-title { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); }
+.sidebar-nav { list-style: none; display: flex; flex-direction: column; gap: var(--space-2); padding: 0 var(--space-4); }
+.nav-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); color: var(--color-text-secondary); text-decoration: none; cursor: pointer; transition: all var(--transition-fast); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); border-left: 3px solid transparent; }
+.nav-item:hover { background: var(--color-bg-hover); color: var(--color-text-primary); }
+.nav-item.active { background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border-left-color: var(--color-primary); }
+.nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+
+.main-content { flex: 1; margin-left: 280px; display: flex; flex-direction: column; transition: margin-left var(--transition-base); }
+.main-content.expanded { margin-left: 0; }
+
+.top-nav { position: sticky; top: 0; background: var(--color-bg-secondary); border-bottom: 1px solid var(--color-border); padding: var(--space-4) var(--space-8); display: flex; align-items: center; justify-content: space-between; z-index: 50; }
+.nav-left { display: flex; align-items: center; gap: var(--space-4); }
+.nav-toggle { width: 40px; height: 40px; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--color-text-primary); transition: all var(--transition-fast); font-size: var(--font-size-lg); }
+.nav-toggle:hover { background: var(--color-bg-hover); }
+.breadcrumb { display: flex; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-text-tertiary); }
+.breadcrumb span { color: var(--color-text-secondary); }
+.nav-right { display: flex; align-items: center; gap: var(--space-6); }
+.nav-search { position: relative; }
+.search-input { background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-2) var(--space-4) var(--space-2) var(--space-3); color: var(--color-text-primary); width: 240px; font-size: var(--font-size-sm); transition: all var(--transition-fast); }
+.search-input:focus { outline: none; border-color: var(--color-primary); background: var(--color-bg-tertiary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+.nav-icons { display: flex; align-items: center; gap: var(--space-4); }
+.icon-btn { width: 40px; height: 40px; background: transparent; border: none; border-radius: var(--radius-md); color: var(--color-text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: var(--font-size-lg); transition: all var(--transition-fast); position: relative; }
+.icon-btn:hover { background: var(--color-bg-tertiary); color: var(--color-text-primary); }
+.notification-badge { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: var(--color-error); border-radius: 50%; animation: pulse 2s infinite; }
+
+.page-container { flex: 1; padding: var(--space-8); overflow-y: auto; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-8); }
+.page-title { flex: 1; }
+.page-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+
+.card { background: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); transition: all var(--transition-base); }
+.card:hover { border-color: var(--color-border-light); box-shadow: var(--shadow-md); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4); padding-bottom: var(--space-4); border-bottom: 1px solid var(--color-border); }
+.card-title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--color-text-primary); }
+.card-subtitle { font-size: var(--font-size-sm); color: var(--color-text-tertiary); }
+.card-content { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-6); margin-bottom: var(--space-8); }
+.metric-card { background: linear-gradient(135deg, var(--color-bg-secondary), var(--color-bg-tertiary)); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); position: relative; overflow: hidden; }
+.metric-card::before { content: ''; position: absolute; top: -50%; right: -50%; width: 200px; height: 200px; background: radial-gradient(circle, rgba(59, 130, 246, 0.05), transparent); border-radius: 50%; pointer-events: none; }
+.metric-label { font-size: var(--font-size-sm); color: var(--color-text-tertiary); font-weight: var(--font-weight-medium); margin-bottom: var(--space-2); }
+.metric-value { font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin-bottom: var(--space-3); }
+.metric-change { display: flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); }
+.metric-change.positive { color: var(--color-success); }
+.metric-change.negative { color: var(--color-error); }
+
+button, .btn { font-family: var(--font-family-base); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); border: none; border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); cursor: pointer; transition: all var(--transition-fast); display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); text-decoration: none; position: relative; overflow: hidden; }
+.btn-primary { background: var(--color-primary); color: white; box-shadow: var(--shadow-sm); }
+.btn-primary:hover { background: var(--color-primary-dark); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-secondary { background: var(--color-bg-tertiary); color: var(--color-text-primary); border: 1px solid var(--color-border); }
+.btn-secondary:hover { background: var(--color-bg-hover); border-color: var(--color-border-light); }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideIn { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.mb-8 { margin-bottom: 2rem; }
+.chart-container { width: 100%; }
+
+table { width: 100%; border-collapse: collapse; }
+th { background: var(--color-bg-tertiary); color: var(--color-text-secondary); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); text-align: left; padding: var(--space-4); border-bottom: 1px solid var(--color-border); }
+td { padding: var(--space-4); border-bottom: 1px solid var(--color-border); font-size: var(--font-size-sm); }
+tr:hover { background: rgba(59, 130, 246, 0.05); }
+tr:last-child td { border-bottom: none; }
+
+.quick-nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+.quick-nav .card { text-align: center; cursor: pointer; padding: 2rem; }
+.quick-nav .card div:first-child { font-size: 2rem; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">M</div>
+        <div class="sidebar-title">Make-Up Classes</div>
+      </div>
+      <nav>
+        <ul class="sidebar-nav">
+          <li><a href="index.html" class="nav-item active"><span class="nav-icon">📊</span><span>Dashboard</span></a></li>
+          <li><a href="faculty.html" class="nav-item"><span class="nav-icon">👨‍🏫</span><span>Faculty Control</span></a></li>
+          <li><a href="student.html" class="nav-item"><span class="nav-icon">👨‍🎓</span><span>Student Portal</span></a></li>
+          <li><a href="ai-insights.html" class="nav-item"><span class="nav-icon">🤖</span><span>AI Insights</span></a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <div class="main-content">
+      <nav class="top-nav">
+        <div class="nav-left">
+          <button class="nav-toggle">☰</button>
+          <div class="breadcrumb"><span>Home</span><span>/</span><span>Dashboard</span></div>
+        </div>
+        <div class="nav-right">
+          <div class="nav-search"><input type="text" class="search-input" placeholder="Search..."></div>
+          <div class="nav-icons">
+            <button class="icon-btn">🔔<span class="notification-badge"></span></button>
+            <button class="icon-btn">⚙️</button>
+            <button class="icon-btn">👤</button>
+          </div>
+        </div>
+      </nav>
+
+      <div class="page-container">
+        <div class="page-header">
+          <div class="page-title">
+            <h1>Dashboard Overview</h1>
+            <p style="color: #94a3b8;">Welcome back! Here's your system summary.</p>
+          </div>
+          <div class="page-actions"><button class="btn btn-primary">Export Report</button></div>
+        </div>
+
+        <div class="metrics-grid"></div>
+
+        <div class="card mb-8">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Attendance Trend</div>
+              <div class="card-subtitle">Last 8 months performance</div>
+            </div>
+          </div>
+          <div class="chart-container"><canvas width="600" height="300"></canvas></div>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+          <h2 style="margin-bottom: 1rem;">Quick Actions</h2>
+          <div class="quick-nav"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Recent Activity</div></div>
+          <div class="card-content">
+            <table>
+              <tbody>
+                <tr><td>Math Make-Up Class Scheduled</td><td style="color: #94a3b8; text-align: right; font-size: 0.875rem;">2 hours ago</td></tr>
+                <tr><td>New Remedial Code Generated: RC-2024-0003</td><td style="color: #94a3b8; text-align: right; font-size: 0.875rem;">5 hours ago</td></tr>
+                <tr><td>Physics Class Attendance: 24/26 Students</td><td style="color: #94a3b8; text-align: right; font-size: 0.875rem;">1 day ago</td></tr>
+                <tr><td>Chemistry Remedial Code Expired</td><td style="color: #94a3b8; text-align: right; font-size: 0.875rem;">2 days ago</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+const AppState = {
+  makeUpClasses: [
+    { id: 1, subject: 'Mathematics', date: '2024-02-25', time: '10:00', classroom: 'A-101', status: 'scheduled', students: 24 },
+    { id: 2, subject: 'Physics', date: '2024-02-26', time: '14:00', classroom: 'B-202', status: 'completed', students: 18 },
+    { id: 3, subject: 'Chemistry', date: '2024-02-27', time: '11:30', classroom: 'C-305', status: 'scheduled', students: 22 },
+  ],
+  remedialCodes: [
+    { code: 'RC-2024-0001', subject: 'Mathematics', generatedBy: 'Prof. Singh', date: '2024-02-20', status: 'active', uses: 12 },
+    { code: 'RC-2024-0002', subject: 'Physics', generatedBy: 'Prof. Sharma', date: '2024-02-21', status: 'active', uses: 8 },
+    { code: 'RC-2024-0003', subject: 'Chemistry', generatedBy: 'Prof. Patel', date: '2024-02-22', status: 'expired', uses: 5 },
+  ],
+  attendanceRecords: [
+    { id: 1, code: 'RC-2024-0001', date: '2024-02-20', time: '10:15', status: 'present' },
+    { id: 2, code: 'RC-2024-0002', date: '2024-02-21', time: '14:05', status: 'late' },
+    { id: 3, code: 'RC-2024-0001', date: '2024-02-22', time: '10:00', status: 'present' },
+  ],
+};
+
+const Utils = {
+  formatDate: (dateString) => {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+  },
+  showToast: (message, type = 'info') => {
+    const container = document.querySelector('.toast-container') || (() => {
+      const div = document.createElement('div');
+      div.className = 'toast-container';
+      document.body.appendChild(div);
+      return div;
+    })();
+  },
+};
+
+class LayoutManager {
+  constructor() {
+    this.sidebar = document.querySelector('.sidebar');
+    this.navToggle = document.querySelector('.nav-toggle');
+    this.mainContent = document.querySelector('.main-content');
+    if (this.navToggle) this.navToggle.addEventListener('click', () => this.toggleSidebar());
+  }
+  toggleSidebar() {
+    this.sidebar?.classList.toggle('collapsed');
+    this.mainContent?.classList.toggle('expanded');
+  }
+}
+
+class Dashboard {
+  constructor() {
+    this.init();
+  }
+  init() {
+    this.renderMetrics();
+    this.renderChart();
+    this.renderQuickNav();
+  }
+  renderMetrics() {
+    const metricsContainer = document.querySelector('.metrics-grid');
+    const metrics = [
+      { label: 'Total Make-Up Classes', value: AppState.makeUpClasses.length, change: '+12%', positive: true },
+      { label: 'Active Remedial Codes', value: AppState.remedialCodes.filter(c => c.status === 'active').length, change: '+5%', positive: true },
+      { label: 'Attendance Success Rate', value: '94.2%', change: '+3%', positive: true },
+    ];
+    metricsContainer.innerHTML = metrics.map(m => `
+      <div class="metric-card">
+        <div class="metric-label">${m.label}</div>
+        <div class="metric-value">${m.value}</div>
+        <div class="metric-change ${m.positive ? 'positive' : 'negative'}">
+          <span>${m.positive ? '↗' : '↘'}</span>
+          <span>${m.change}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+  renderChart() {
+    const canvas = document.querySelector('canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width, height = canvas.height;
+    ctx.fillStyle = '#1a1f2e';
+    ctx.fillRect(0, 0, width, height);
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 5; i++) {
+      const y = (height / 5) * i;
+      ctx.beginPath();
+      ctx.moveTo(40, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+    const data = [45, 52, 48, 65, 72, 78, 85, 92];
+    const points = [];
+    const pointWidth = (width - 60) / (data.length - 1);
+    const scale = (height - 40) / 100;
+    data.forEach((value, index) => {
+      const x = 40 + pointWidth * index;
+      const y = height - 20 - value * scale;
+      points.push({ x, y });
+    });
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    points.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.stroke();
+    points.forEach(p => {
+      ctx.fillStyle = '#3b82f6';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#0f1419';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
+    data.forEach((_, index) => {
+      const x = 40 + pointWidth * index;
+      ctx.fillText(months[index], x, height - 5);
+    });
+  }
+  renderQuickNav() {
+    const quickNavContainer = document.querySelector('.quick-nav');
+    const tiles = [
+      { title: 'Schedule Class', icon: '📅', link: 'faculty.html' },
+      { title: 'Generate Code', icon: '🔐', link: 'faculty.html' },
+      { title: 'Mark Attendance', icon: '✓', link: 'student.html' },
+      { title: 'View Insights', icon: '📊', link: 'ai-insights.html' },
+    ];
+    quickNavContainer.innerHTML = tiles.map(tile => `
+      <a href="${tile.link}" class="card" style="text-align: center; cursor: pointer;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">${tile.icon}</div>
+        <div>${tile.title}</div>
+      </a>
+    `).join('');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  new LayoutManager();
+  new Dashboard();
+});
+  </script>
+</body>
+</html>

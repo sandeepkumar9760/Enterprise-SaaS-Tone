@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faculty Control - Make-Up Class Management</title>
+  <style>
+:root {
+  --color-bg-primary: #0f1419;
+  --color-bg-secondary: #1a1f2e;
+  --color-bg-tertiary: #242d3d;
+  --color-bg-hover: #2d3647;
+  --color-primary: #3b82f6;
+  --color-primary-dark: #1e40af;
+  --color-primary-light: #60a5fa;
+  --color-accent: #06b6d4;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-tertiary: #94a3b8;
+  --color-border: #334155;
+  --color-border-light: #475569;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 32px;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 250ms ease-in-out;
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.7);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-family-base); background: var(--color-bg-primary); color: var(--color-text-primary); overflow-x: hidden; }
+
+h1, h2, h3 { font-weight: var(--font-weight-semibold); color: var(--color-text-primary); margin-bottom: 1rem; }
+h1 { font-size: var(--font-size-3xl); }
+h2 { font-size: var(--font-size-2xl); }
+h3 { font-size: var(--font-size-xl); }
+p { color: var(--color-text-secondary); }
+
+.layout { display: flex; min-height: 100vh; }
+.sidebar { position: fixed; left: 0; top: 0; width: 280px; height: 100vh; background: var(--color-bg-secondary); border-right: 1px solid var(--color-border); padding: var(--space-8) 0; overflow-y: auto; z-index: 100; }
+.sidebar.collapsed { transform: translateX(-100%); }
+.sidebar-header { padding: 0 var(--space-6); margin-bottom: var(--space-8); display: flex; align-items: center; gap: var(--space-3); }
+.sidebar-logo { width: 40px; height: 40px; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; color: white; font-weight: var(--font-weight-bold); }
+.sidebar-title { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+.sidebar-nav { list-style: none; display: flex; flex-direction: column; gap: var(--space-2); padding: 0 var(--space-4); }
+.nav-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); color: var(--color-text-secondary); text-decoration: none; cursor: pointer; transition: all var(--transition-fast); font-size: var(--font-size-sm); border-left: 3px solid transparent; }
+.nav-item:hover { background: var(--color-bg-hover); color: var(--color-text-primary); }
+.nav-item.active { background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border-left-color: var(--color-primary); }
+
+.main-content { flex: 1; margin-left: 280px; display: flex; flex-direction: column; }
+.main-content.expanded { margin-left: 0; }
+
+.top-nav { position: sticky; top: 0; background: var(--color-bg-secondary); border-bottom: 1px solid var(--color-border); padding: var(--space-4) var(--space-8); display: flex; align-items: center; justify-content: space-between; z-index: 50; }
+.nav-left { display: flex; align-items: center; gap: var(--space-4); }
+.nav-toggle { width: 40px; height: 40px; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--color-text-primary); }
+.nav-toggle:hover { background: var(--color-bg-hover); }
+.breadcrumb { display: flex; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-text-tertiary); }
+.nav-right { display: flex; align-items: center; gap: var(--space-6); }
+.search-input { background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-2) var(--space-4); color: var(--color-text-primary); width: 240px; font-size: var(--font-size-sm); }
+.search-input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+.icon-btn { width: 40px; height: 40px; background: transparent; border: none; border-radius: var(--radius-md); color: var(--color-text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+.icon-btn:hover { background: var(--color-bg-tertiary); }
+
+.page-container { flex: 1; padding: var(--space-8); overflow-y: auto; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-8); }
+.page-actions { display: flex; gap: var(--space-3); }
+
+.card { background: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: 2rem; }
+.card:hover { border-color: var(--color-border-light); box-shadow: var(--shadow-md); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4); padding-bottom: var(--space-4); border-bottom: 1px solid var(--color-border); }
+.card-title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); }
+.card-subtitle { font-size: var(--font-size-sm); color: var(--color-text-tertiary); }
+
+.metric-card { background: linear-gradient(135deg, var(--color-bg-secondary), var(--color-bg-tertiary)); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); }
+.metric-label { font-size: var(--font-size-sm); color: var(--color-text-tertiary); margin-bottom: var(--space-2); }
+.metric-value { font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin-bottom: var(--space-3); }
+.metric-change { display: flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-success); }
+
+button, .btn { font-family: var(--font-family-base); font-size: var(--font-size-sm); border: none; border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); cursor: pointer; transition: all var(--transition-fast); display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); }
+.btn-primary { background: var(--color-primary); color: white; }
+.btn-primary:hover { background: var(--color-primary-dark); transform: translateY(-2px); }
+.btn-secondary { background: var(--color-bg-tertiary); color: var(--color-text-primary); border: 1px solid var(--color-border); }
+.btn-secondary:hover { background: var(--color-bg-hover); }
+.btn-ghost { background: transparent; color: var(--color-primary); border: 1px solid var(--color-primary); }
+.btn-ghost:hover { background: rgba(59, 130, 246, 0.1); }
+.btn-sm { padding: var(--space-2) var(--space-3); font-size: var(--font-size-sm); }
+.btn-block { width: 100%; }
+
+.form-group { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); }
+.form-label { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); color: var(--color-text-primary); }
+.form-input, .form-select, .form-textarea { background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); color: var(--color-text-primary); font-family: var(--font-family-base); font-size: var(--font-size-base); }
+.form-input:focus, .form-select:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+.form-textarea { resize: vertical; min-height: 120px; }
+.form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right var(--space-3) center; background-size: 20px; padding-right: var(--space-8); }
+
+.modal { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 200; opacity: 0; visibility: hidden; transition: opacity var(--transition-base), visibility var(--transition-base); }
+.modal.active { opacity: 1; visibility: visible; }
+.modal-content { background: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: var(--radius-xl); max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-xl); transform: scale(0.95); transition: transform var(--transition-base); }
+.modal.active .modal-content { transform: scale(1); }
+.modal-header { padding: var(--space-6); border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; }
+.modal-title { font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); }
+.modal-close { background: transparent; border: none; color: var(--color-text-tertiary); cursor: pointer; font-size: var(--font-size-xl); width: 36px; height: 36px; }
+.modal-body { padding: var(--space-6); }
+.modal-footer { padding: var(--space-6); border-top: 1px solid var(--color-border); display: flex; gap: var(--space-3); justify-content: flex-end; }
+
+table { width: 100%; border-collapse: collapse; }
+th { background: var(--color-bg-tertiary); color: var(--color-text-secondary); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); text-align: left; padding: var(--space-4); border-bottom: 1px solid var(--color-border); }
+td { padding: var(--space-4); border-bottom: 1px solid var(--color-border); font-size: var(--font-size-sm); }
+tr:hover { background: rgba(59, 130, 246, 0.05); }
+
+.badge { display: inline-flex; align-items: center; gap: var(--space-1); padding: var(--space-1) var(--space-3); border-radius: 9999px; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+.badge-primary { background: rgba(59, 130, 246, 0.2); color: var(--color-primary-light); }
+.badge-success { background: rgba(16, 185, 129, 0.2); color: var(--color-success); }
+.badge-warning { background: rgba(245, 158, 11, 0.2); color: var(--color-warning); }
+.badge-error { background: rgba(239, 68, 68, 0.2); color: var(--color-error); }
+
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-6); margin-bottom: 2rem; }
+.table-container { overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">M</div>
+        <div class="sidebar-title">Make-Up Classes</div>
+      </div>
+      <nav>
+        <ul class="sidebar-nav">
+          <li><a href="index.html" class="nav-item"><span>📊</span><span>Dashboard</span></a></li>
+          <li><a href="faculty.html" class="nav-item active"><span>👨‍🏫</span><span>Faculty Control</span></a></li>
+          <li><a href="student.html" class="nav-item"><span>👨‍🎓</span><span>Student Portal</span></a></li>
+          <li><a href="ai-insights.html" class="nav-item"><span>🤖</span><span>AI Insights</span></a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <div class="main-content">
+      <nav class="top-nav">
+        <div class="nav-left">
+          <button class="nav-toggle">☰</button>
+          <div class="breadcrumb"><span>Home</span><span>/</span><span>Faculty Control</span></div>
+        </div>
+        <div class="nav-right">
+          <div><input type="text" class="search-input" placeholder="Search classes or codes..."></div>
+          <div><button class="icon-btn">🔔</button><button class="icon-btn">⚙️</button><button class="icon-btn">👤</button></div>
+        </div>
+      </nav>
+
+      <div class="page-container">
+        <div class="page-header">
+          <div class="page-title">
+            <h1>Faculty Control Panel</h1>
+            <p style="color: #94a3b8;">Manage make-up classes and generate remedial codes.</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-secondary" data-modal="schedule">📅 Schedule Make-Up Class</button>
+            <button class="btn btn-primary" data-modal="generate">🔐 Generate Remedial Code</button>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">Classes Scheduled This Month</div>
+            <div class="metric-value">12</div>
+            <div class="metric-change"><span>↗</span><span>+4 from last month</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Active Remedial Codes</div>
+            <div class="metric-value">8</div>
+            <div class="metric-change"><span>↗</span><span>All active</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Average Attendance</div>
+            <div class="metric-value">89.5%</div>
+            <div class="metric-change"><span>↗</span><span>+2.3% from average</span></div>
+          </div>
+        </div>
+
+        <div class="generated-code-display"></div>
+
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Remedial Codes</div></div>
+          </div>
+          <div class="table-container">
+            <table class="remedial-codes-table">
+              <thead><tr><th>Code</th><th>Subject</th><th>Generated</th><th>Status</th><th>Uses</th><th>Action</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Scheduled Make-Up Classes</div></div>
+          <div class="table-container">
+            <table>
+              <thead><tr><th>Subject</th><th>Date</th><th>Time</th><th>Classroom</th><th>Status</th><th>Students</th></tr></thead>
+              <tbody>
+                <tr><td>Mathematics</td><td>Feb 25, 2024</td><td>10:00 AM</td><td>A-101</td><td><span class="badge badge-warning">Scheduled</span></td><td>24</td></tr>
+                <tr><td>Physics</td><td>Feb 26, 2024</td><td>2:00 PM</td><td>B-202</td><td><span class="badge badge-primary">Completed</span></td><td>18</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" data-modal-id="schedule">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Schedule Make-Up Class</h2>
+        <button class="modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <form data-form="schedule">
+          <div class="form-group"><label class="form-label">Subject *</label><select class="form-select" name="subject" required><option>Select Subject</option><option value="Mathematics">Mathematics</option><option value="Physics">Physics</option><option value="Chemistry">Chemistry</option></select></div>
+          <div class="form-group"><label class="form-label">Date *</label><input type="date" class="form-input" name="date" required></div>
+          <div class="form-group"><label class="form-label">Time *</label><input type="time" class="form-input" name="time" required></div>
+          <div class="form-group"><label class="form-label">Classroom *</label><input type="text" class="form-input" name="classroom" placeholder="e.g., A-101" required></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="this.closest('.modal').classList.remove('active')">Cancel</button>
+        <button class="btn btn-primary" onclick="document.querySelector('form[data-form=\"schedule\"]').dispatchEvent(new Event('submit'))">Schedule Class</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" data-modal-id="generate">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Generate Remedial Code</h2>
+        <button class="modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <form data-form="generate">
+          <div class="form-group"><label class="form-label">Subject *</label><select class="form-select" name="subject" required><option>Select Subject</option><option value="Mathematics">Mathematics</option><option value="Physics">Physics</option></select></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="this.closest('.modal').classList.remove('active')">Cancel</button>
+        <button class="btn btn-primary" onclick="document.querySelector('form[data-form=\"generate\"]').dispatchEvent(new Event('submit'))">Generate Code</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+const AppState = {
+  makeUpClasses: [
+    { id: 1, subject: 'Mathematics', date: '2024-02-25', time: '10:00', classroom: 'A-101', status: 'scheduled', students: 24 },
+  ],
+  remedialCodes: [
+    { code: 'RC-2024-0001', subject: 'Mathematics', generatedBy: 'Prof. Singh', date: '2024-02-20', status: 'active', uses: 12 },
+    { code: 'RC-2024-0002', subject: 'Physics', generatedBy: 'Prof. Sharma', date: '2024-02-21', status: 'active', uses: 8 },
+  ],
+};
+
+const Utils = {
+  generateCode: () => {
+    const year = new Date().getFullYear();
+    const random = Math.floor(Math.random() * 9000) + 1000;
+    return `RC-${year}-${random}`;
+  },
+  formatDate: (dateString) => {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+  },
+  showToast: (message) => console.log(message),
+  copyToClipboard: (text) => navigator.clipboard.writeText(text),
+};
+
+class LayoutManager {
+  constructor() {
+    this.sidebar = document.querySelector('.sidebar');
+    this.navToggle = document.querySelector('.nav-toggle');
+    this.mainContent = document.querySelector('.main-content');
+    if (this.navToggle) this.navToggle.addEventListener('click', () => this.toggleSidebar());
+  }
+  toggleSidebar() {
+    this.sidebar?.classList.toggle('collapsed');
+    this.mainContent?.classList.toggle('expanded');
+  }
+}
+
+class FacultyPage {
+  constructor() {
+    this.init();
+  }
+  init() {
+    this.setupModals();
+    this.renderTable();
+  }
+  setupModals() {
+    document.querySelectorAll('.modal-close').forEach(btn => {
+      btn.addEventListener('click', (e) => e.target.closest('.modal').classList.remove('active'));
+    });
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.remove('active');
+      });
+    });
+    document.querySelector('form[data-form="schedule"]')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      AppState.makeUpClasses.push({
+        id: AppState.makeUpClasses.length + 1,
+        subject: formData.get('subject'),
+        date: formData.get('date'),
+        time: formData.get('time'),
+        classroom: formData.get('classroom'),
+        status: 'scheduled',
+        students: 0,
+      });
+      document.querySelector('[data-modal-id="schedule"]').classList.remove('active');
+      e.target.reset();
+    });
+    document.querySelector('form[data-form="generate"]')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const code = Utils.generateCode();
+      const formData = new FormData(e.target);
+      AppState.remedialCodes.push({
+        code,
+        subject: formData.get('subject'),
+        generatedBy: 'Faculty',
+        date: new Date().toISOString().split('T')[0],
+        status: 'active',
+        uses: 0,
+      });
+      const display = document.querySelector('.generated-code-display');
+      if (display) {
+        display.innerHTML = `<div class="card"><div style="display: flex; justify-content: space-between; align-items: center;"><div><div style="font-size: 0.875rem; color: #94a3b8;">Generated Code</div><div style="font-size: 1.5rem; font-weight: bold; color: #3b82f6; font-family: monospace;">${code}</div></div><button class="btn btn-secondary" onclick="Utils.copyToClipboard('${code}')">Copy</button></div></div>`;
+      }
+      document.querySelector('[data-modal-id="generate"]').classList.remove('active');
+      e.target.reset();
+      this.renderTable();
+    });
+  }
+  renderTable() {
+    const tbody = document.querySelector('.remedial-codes-table tbody');
+    tbody.innerHTML = AppState.remedialCodes.map(code => `
+      <tr>
+        <td><span style="font-family: monospace; font-weight: 600; color: #3b82f6;">${code.code}</span></td>
+        <td>${code.subject}</td>
+        <td>${Utils.formatDate(code.date)}</td>
+        <td><span class="badge ${code.status === 'active' ? 'badge-success' : 'badge-error'}">${code.status}</span></td>
+        <td>${code.uses}</td>
+        <td><button class="btn btn-sm btn-ghost" onclick="Utils.copyToClipboard('${code.code}')">Copy</button></td>
+      </tr>
+    `).join('');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  new LayoutManager();
+  new FacultyPage();
+  document.querySelectorAll('[data-modal]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const modalId = btn.getAttribute('data-modal');
+      document.querySelector(`[data-modal-id="${modalId}"]`).classList.add('active');
+    });
+  });
+});
+  </script>
+</body>
+</html>
