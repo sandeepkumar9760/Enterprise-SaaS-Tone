@@ -122,8 +122,8 @@ tr:hover { background: rgba(59, 130, 246, 0.05); }
         <ul class="sidebar-nav">
           <li><a href="{% url 'dashboard' %}" class="nav-item"><span>📊</span><span>Dashboard</span></a></li>
           <li><a href="{% url 'faculty' %}" class="nav-item"><span>👨‍🏫</span><span>Faculty Control</span></a></li>
-          <li><a href="{% url 'student' %}" class="nav-item"><span>👨‍🎓</span><span>Student Portal</span></a></li>
-          <li><a href="{% url 'ai' %}" class="nav-item active"><span>🤖</span><span>AI Insights</span></a></li>
+          <li><a href="{% url 'student' %}" class="nav-item active"><span>👨‍🎓</span><span>Student Portal</span></a></li>
+          <li><a href="{% url 'ai' %}" class="nav-item"><span>🤖</span><span>AI Insights</span></a></li>
         </ul>
       </nav>
     </aside>
@@ -165,17 +165,17 @@ tr:hover { background: rgba(59, 130, 246, 0.05); }
         <div class="metrics-grid">
           <div class="metric-card">
             <div class="metric-label">Total Sessions Attended</div>
-            <div class="metric-value">3</div>
+           <div class="metric-value" id="totalSessions">0</div>
             <div class="metric-change"><span>↗</span><span>On track</span></div>
           </div>
           <div class="metric-card">
             <div class="metric-label">Attendance Rate</div>
-            <div class="metric-value">100%</div>
+            <div class="metric-value" id="attendanceRate">0%</div>
             <div class="metric-change"><span>✓</span><span>Perfect record</span></div>
           </div>
           <div class="metric-card">
             <div class="metric-label">Pending Sessions</div>
-            <div class="metric-value">2</div>
+            <div class="metric-value" id="pendingSessions">0</div>
             <div class="metric-change" style="color: var(--color-error);"><span>↘</span><span>Upcoming</span></div>
           </div>
         </div>
@@ -185,7 +185,7 @@ tr:hover { background: rgba(59, 130, 246, 0.05); }
           <div class="table-container">
             <table class="attendance-history">
               <thead><tr><th>Remedial Code</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
-              <tbody></tbody>
+              <tbody id="attendanceHistoryBody"></tbody>
             </table>
           </div>
         </div>
@@ -212,101 +212,123 @@ tr:hover { background: rgba(59, 130, 246, 0.05); }
     </div>
   </div>
 
-  <script>
-const AppState = {
-  remedialCodes: [
-    { code: 'RC-2024-0001', subject: 'Mathematics' },
-    { code: 'RC-2024-0002', subject: 'Physics' },
-  ],
-  attendanceRecords: [
-    { id: 1, code: 'RC-2024-0001', date: '2024-02-20', time: '10:15', status: 'present' },
-    { id: 2, code: 'RC-2024-0002', date: '2024-02-21', time: '14:05', status: 'late' },
-  ],
-};
-
-const Utils = {
-  formatDate: (dateString) => new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
-  showToast: (message) => console.log(message),
-};
+ <script>
 
 class LayoutManager {
   constructor() {
     const toggle = document.querySelector('.nav-toggle');
     const sidebar = document.querySelector('.sidebar');
     const main = document.querySelector('.main-content');
-    if (toggle) toggle.addEventListener('click', () => {
-      sidebar?.classList.toggle('collapsed');
-      main?.classList.toggle('expanded');
-    });
-  }
-}
-
-class StudentPage {
-  constructor() {
-    this.init();
-  }
-  init() {
-    this.setupCodeInput();
-    this.renderHistory();
-  }
-  setupCodeInput() {
-    const codeInput = document.querySelector('[data-input="remedial-code"]');
-    const submitBtn = document.querySelector('[data-action="submit-attendance"]');
-    if (codeInput && submitBtn) {
-      const validateCode = () => {
-        const code = codeInput.value.trim().toUpperCase();
-        const isValid = AppState.remedialCodes.some(c => c.code === code);
-        if (isValid) {
-          codeInput.classList.remove('error');
-          codeInput.classList.add('success');
-        } else if (code.length > 0) {
-          codeInput.classList.add('error');
-          codeInput.classList.remove('success');
-        } else {
-          codeInput.classList.remove('error', 'success');
-        }
-      };
-      codeInput.addEventListener('input', validateCode);
-      submitBtn.addEventListener('click', () => {
-        const code = codeInput.value.trim().toUpperCase();
-        const isValid = AppState.remedialCodes.some(c => c.code === code);
-        if (!isValid) {
-          Utils.showToast('Invalid code');
-          return;
-        }
-        AppState.attendanceRecords.push({
-          id: AppState.attendanceRecords.length + 1,
-          code,
-          date: new Date().toISOString().split('T')[0],
-          time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
-          status: 'present',
-        });
-        codeInput.value = '';
-        codeInput.classList.remove('error', 'success');
-        this.renderHistory();
+    if (toggle) {
+      toggle.addEventListener('click', () => {
+        sidebar?.classList.toggle('collapsed');
+        main?.classList.toggle('expanded');
       });
     }
   }
-  renderHistory() {
-    const tbody = document.querySelector('.attendance-history tbody');
-    tbody.innerHTML = AppState.attendanceRecords.map(record => {
-      const statusClass = record.status === 'present' ? 'badge-success' : record.status === 'late' ? 'badge-warning' : 'badge-error';
-      return `
-        <tr>
-          <td>${record.code}</td>
-          <td>${Utils.formatDate(record.date)}</td>
-          <td>${record.time || '-'}</td>
-          <td><span class="badge ${statusClass}">${record.status.charAt(0).toUpperCase() + record.status.slice(1)}</span></td>
-        </tr>
-      `;
-    }).join('');
+}
+
+
+// ==============================
+// 🔐 GET CSRF TOKEN
+// ==============================
+
+function getCSRFToken() {
+  return document.cookie.split('; ')
+    .find(row => row.startsWith('csrftoken'))
+    ?.split('=')[1];
+}
+
+
+// ==============================
+// 📊 LOAD STUDENT METRICS
+// ==============================
+
+async function loadStudentMetrics() {
+  const response = await fetch("/api/student/metrics/");
+  const data = await response.json();
+
+  document.getElementById("totalSessions").innerText = data.total_sessions;
+  document.getElementById("attendanceRate").innerText = data.attendance_rate + "%";
+  document.getElementById("pendingSessions").innerText = data.pending_sessions;
+}
+
+
+// ==============================
+// 📜 LOAD ATTENDANCE HISTORY
+// ==============================
+
+async function loadAttendanceHistory() {
+  const response = await fetch("/api/student/history/");
+  const data = await response.json();
+
+  const tbody = document.getElementById("attendanceHistoryBody");
+  tbody.innerHTML = "";
+  if (!data.records) return;
+  data.records.forEach(record => {
+    const row = `
+      <tr>
+        <td>${record.code}</td>
+        <td>${record.date}</td>
+        <td>${record.time}</td>
+        <td><span class="badge badge-success">${record.status}</span></td>
+      </tr>
+    `;
+    tbody.innerHTML += row;
+  });
+}
+
+
+// ==============================
+// 🚀 MARK ATTENDANCE
+// ==============================
+
+async function markAttendance() {
+  const codeInput = document.querySelector('[data-input="remedial-code"]');
+  const code = codeInput.value.trim().toUpperCase();
+
+  if (!code) {
+    alert("Please enter remedial code");
+    return;
+  }
+
+  const response = await fetch("/api/student/mark-attendance/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCSRFToken()
+    },
+    body: JSON.stringify({
+      remedial_code: code
+    })
+  });
+
+  const result = await response.json();
+
+  if (response.ok) {
+    alert("Attendance Marked Successfully");
+    codeInput.value = "";
+    loadStudentMetrics();
+    loadAttendanceHistory();
+  } else {
+    alert(result.message);
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+
+// ==============================
+// 🎯 INIT
+// ==============================
+
+document.addEventListener("DOMContentLoaded", function() {
   new LayoutManager();
-  new StudentPage();
+  loadStudentMetrics();
+  loadAttendanceHistory();
+
+  const submitBtn = document.querySelector('[data-action="submit-attendance"]');
+  submitBtn?.addEventListener("click", markAttendance);
 });
-  </script>
+
+</script>
 </body>
 </html>
