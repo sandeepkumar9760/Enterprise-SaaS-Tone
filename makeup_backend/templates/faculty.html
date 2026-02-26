@@ -172,8 +172,35 @@ async function loadClasses() {
             `;
         });
 
-        document.getElementById("totalClasses").innerText = classes.length;
-        document.getElementById("totalStudents").innerText = totalStudents;
+        document.getElementById("scheduleForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    const response = await fetch("/api/faculty/create-class/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCSRFToken()
+        },
+        body: JSON.stringify({
+            subject: formData.get("subject"),
+            date: formData.get("date"),
+            time: formData.get("time"),
+            classroom: formData.get("classroom")
+        })
+    });
+
+    const result = await response.json();
+
+    if (response.status === 201) {
+        alert("Class Created Successfully\nCode: " + result.remedial_code);
+        closeModal();
+        loadClasses();
+    } else {
+        alert(result.message);
+    }
+});
 
     } catch (error) {
         console.error("Error loading classes:", error);

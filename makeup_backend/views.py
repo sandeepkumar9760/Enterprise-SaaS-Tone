@@ -118,28 +118,53 @@ def dashboard_data(request):
 # 👨‍🏫 API: CREATE MAKE-UP CLASS
 # =====================================================
 
+import json
+from datetime import datetime
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
+
 @require_POST
 @staff_required
 def create_makeup_class(request):
     try:
         data = json.loads(request.body)
 
+        subject = data.get("subject")
+        classroom = data.get("classroom")
+        date_str = data.get("date")
+        time_str = data.get("time")
+        description = data.get("description", "")
+
+        # Validation
+        if not all([subject, classroom, date_str, time_str]):
+            return JsonResponse(
+                {"message": "All required fields must be filled"},
+                status=400
+            )
+
+        # Convert to proper date/time objects
+        date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+        time_obj = datetime.strptime(time_str, "%H:%M").time()
+
         makeup = MakeUpClass.objects.create(
-            subject=data.get("subject"),
-            classroom=data.get("classroom"),
-            date=data.get("date"),
-            time=data.get("time"),
-            description=data.get("description"),
+            subject=subject,
+            classroom=classroom,
+            date=date_obj,
+            time=time_obj,
+            description=description
         )
 
         return JsonResponse({
+            "message": "Class created successfully",
             "remedial_code": makeup.remedial_code
         }, status=201)
 
     except Exception as e:
-        return JsonResponse({"message": str(e)}, status=400)
-
-
+        return JsonResponse(
+            {"message": str(e)},
+            status=400
+        )
 # =====================================================
 # 👨‍🏫 API: FACULTY CLASS LIST
 # =====================================================

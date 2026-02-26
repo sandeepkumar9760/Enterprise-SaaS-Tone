@@ -33,22 +33,35 @@ class Student(models.Model):
         return self.roll_number
 
 
+import uuid
+from django.db import models
+
+
 class MakeUpClass(models.Model):
-    subject = models.CharField(max_length=200)
-    classroom = models.CharField(max_length=100)
+    subject = models.CharField(max_length=100)
+    classroom = models.CharField(max_length=50)
     date = models.DateField()
     time = models.TimeField()
-    description = models.TextField(blank=True)
-    remedial_code = models.CharField(max_length=12, unique=True, blank=True)
+    description = models.TextField(blank=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
+
+    remedial_code = models.CharField(
+        max_length=20,
+        unique=True,
+        editable=False
+    )
 
     def save(self, *args, **kwargs):
         if not self.remedial_code:
-            self.remedial_code = str(uuid.uuid4()).replace("-", "")[:8].upper()
+            self.remedial_code = self.generate_code()
         super().save(*args, **kwargs)
 
+    def generate_code(self):
+        return "RC-" + uuid.uuid4().hex[:6].upper()
+
     def __str__(self):
-        return f"{self.subject} - {self.date}"
+        return f"{self.subject} - {self.remedial_code}"
 
 
 class Attendance(models.Model):
