@@ -134,16 +134,12 @@ def create_makeup_class(request):
         classroom = data.get("classroom")
         date_str = data.get("date")
         time_str = data.get("time")
-        description = data.get("description", "")
 
-        # Validation
-        if not all([subject, classroom, date_str, time_str]):
-            return JsonResponse(
-                {"message": "All required fields must be filled"},
-                status=400
-            )
+        if not subject or not classroom or not date_str or not time_str:
+            return JsonResponse({"message": "All fields required"}, status=400)
 
-        # Convert to proper date/time objects
+        from datetime import datetime
+
         date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
         time_obj = datetime.strptime(time_str, "%H:%M").time()
 
@@ -151,20 +147,18 @@ def create_makeup_class(request):
             subject=subject,
             classroom=classroom,
             date=date_obj,
-            time=time_obj,
-            description=description
+            time=time_obj
         )
 
         return JsonResponse({
-            "message": "Class created successfully",
+            "message": "Class created",
             "remedial_code": makeup.remedial_code
         }, status=201)
+        
 
     except Exception as e:
-        return JsonResponse(
-            {"message": str(e)},
-            status=400
-        )
+        print("ERROR:", e)
+        return JsonResponse({"message": str(e)}, status=400)
 # =====================================================
 # 👨‍🏫 API: FACULTY CLASS LIST
 # =====================================================
@@ -173,23 +167,54 @@ def create_makeup_class(request):
 def faculty_classes(request):
 
     classes = MakeUpClass.objects.annotate(
-        student_count=Count("attendance_set")
+        student_count=Count("attendance")
     ).order_by("-created_at")
 
     data = [
         {
+            "id": c.id,
             "subject": c.subject,
             "date": c.date.strftime("%Y-%m-%d"),
             "time": c.time.strftime("%H:%M"),
             "classroom": c.classroom,
-            "code": c.remedial_code,
-            "students": c.student_count
+            "remedial_code": c.remedial_code,
+            "attendance_count": c.student_count,
+            "status": c.status
         }
         for c in classes
     ]
 
-    return JsonResponse(data, safe=False)
+    return JsonResponse({"classes": data})
 
+@require_POST
+@staff_required
+def delete_class(request, class_id):
+    try:
+        obj = MakeUpClass.objects.get(id=class_id)
+        obj.delete()
+        return JsonResponse({"message": "Deleted successfully"})
+    except MakeUpClass.DoesNotExist:
+        return JsonResponse({"message": "Class not found"}, status=404)
+    
+@require_POST
+@staff_required
+def edit_class(request, class_id):
+    try:
+        data = json.loads(request.body)
+
+        obj = MakeUpClass.objects.get(id=class_id)
+
+        from datetime import datetime
+
+        obj.subject = data.get("subject")
+        obj.classroom = data.get("classroom")
+        obj.date = datetime.strptime(data.get("date"), "%Y-%m-%d").date()
+        obj.time = datetime.strptime(data.get("time"), "%H:%M").time()
+        obj.save()
+
+        return JsonResponse({"message": "Updated successfully"})
+    except Exception as e:
+        return JsonResponse({"message": str(e)}, status=400)
 
 # =====================================================
 # 👨‍🎓 API: MARK ATTENDANCE

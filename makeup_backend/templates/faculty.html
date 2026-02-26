@@ -28,7 +28,9 @@ input, select { width:100%; padding:8px; margin-bottom:10px; }
 </style>
 </head>
 
+
 <body>
+  <form id="csrf-form">{% csrf_token %}</form>
 <div class="layout">
 
 <!-- ===== SIDEBAR ===== -->
@@ -99,7 +101,7 @@ input, select { width:100%; padding:8px; margin-bottom:10px; }
 <option value="Chemistry">Chemistry</option>
 </select>
 
-<input type="date" name="date" required>
+<input type="date" class="form-input" name="date" required>
 <input type="time" name="time" required>
 <input type="text" name="classroom" placeholder="Classroom" required>
 
@@ -116,9 +118,7 @@ input, select { width:100%; padding:8px; margin-bottom:10px; }
 // CSRF TOKEN
 // =============================
 function getCSRFToken() {
-  return document.cookie.split('; ')
-    .find(row => row.startsWith('csrftoken'))
-    ?.split('=')[1];
+    return document.querySelector('#csrf-form [name=csrfmiddlewaretoken]').value;
 }
 
 // =============================
@@ -135,78 +135,61 @@ function closeModal() {
 // LOAD CLASSES
 // =============================
 async function loadClasses() {
-    try {
-        const response = await fetch("/api/faculty/classes/");
-        const result = await response.json();
-        const classes = result.classes;
-
-        const codesTable = document.getElementById("codesTable");
-        const scheduleTable = document.getElementById("scheduleTable");
-
-        codesTable.innerHTML = "";
-        scheduleTable.innerHTML = "";
-
-        let totalStudents = 0;
-
-        classes.forEach(cls => {
-            totalStudents += cls.students;
-
-            codesTable.innerHTML += `
-                <tr>
-                    <td>${cls.code}</td>
-                    <td>${cls.subject}</td>
-                    <td>${cls.date}</td>
-                    <td><span class="badge">Active</span></td>
-                    <td>${cls.students}</td>
-                </tr>
-            `;
-
-            scheduleTable.innerHTML += `
-                <tr>
-                    <td>${cls.subject}</td>
-                    <td>${cls.date}</td>
-                    <td>${cls.time}</td>
-                    <td>${cls.classroom}</td>
-                    <td>${cls.students}</td>
-                </tr>
-            `;
-        });
-
-        document.getElementById("scheduleForm").addEventListener("submit", async function(e) {
-    e.preventDefault();
-
-    const formData = new FormData(this);
-
-    const response = await fetch("/api/faculty/create-class/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCSRFToken()
-        },
-        body: JSON.stringify({
-            subject: formData.get("subject"),
-            date: formData.get("date"),
-            time: formData.get("time"),
-            classroom: formData.get("classroom")
-        })
-    });
-
+    const response = await fetch("/api/faculty/classes/");
     const result = await response.json();
 
-    if (response.status === 201) {
-        alert("Class Created Successfully\nCode: " + result.remedial_code);
-        closeModal();
-        loadClasses();
-    } else {
-        alert(result.message);
-    }
-});
+    const codesTable = document.getElementById("codesTable");
+    const scheduleTable = document.getElementById("scheduleTable");
 
-    } catch (error) {
-        console.error("Error loading classes:", error);
+    codesTable.innerHTML = "";
+    scheduleTable.innerHTML = "";
+
+    if (!result.classes || result.classes.length === 0) {
+        codesTable.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align:center;">No classes found</td>
+            </tr>
+        `;
+        return;
     }
+
+    let totalStudents = 0;
+
+    result.classes.forEach(cls => {
+
+        totalStudents += cls.attendance_count;
+
+        // Remedial Codes Table
+        codesTable.innerHTML += `
+            <tr>
+                <td>${cls.remedial_code}</td>
+                <td>${cls.subject}</td>
+                <td>${cls.date}</td>
+                <td>
+                    <span class="badge" style="
+                        background:${cls.status === 'Active' ? '#10b981' : '#ef4444'};">
+                        ${cls.status}
+                    </span>
+                </td>
+                <td>${cls.attendance_count}</td>
+            </tr>
+        `;
+
+        // Scheduled Classes Table
+        scheduleTable.innerHTML += `
+            <tr>
+                <td>${cls.subject}</td>
+                <td>${cls.date}</td>
+                <td>${cls.time}</td>
+                <td>${cls.classroom}</td>
+                <td>${cls.attendance_count}</td>
+            </tr>
+        `;
+    });
+
+    document.getElementById("totalClasses").innerText = result.classes.length;
+    document.getElementById("totalStudents").innerText = totalStudents;
 }
-
 // =============================
 // CREATE CLASS
 // =============================
@@ -229,10 +212,13 @@ document.getElementById("scheduleForm").addEventListener("submit", async functio
                 classroom: formData.get("classroom")
             })
         });
+        
 
-        if (response.ok) {
-            closeModal();
-            loadClasses();
+       if (response.ok) {
+    const result = await response.json();
+    alert("Created: " + result.remedial_code);
+    loadClasses(); // refresh table
+
         } else {
             alert("Failed to create class");
         }
@@ -241,11 +227,43 @@ document.getElementById("scheduleForm").addEventListener("submit", async functio
         console.error("Error creating class:", error);
     }
 });
+function openEdit(id, subject, date, time, classroom) {
+    const newSubject = prompt("Subject:", subject);
+    const newDate = prompt("Date (YYYY-MM-DD):", date);
+    const newTime = prompt("Time (HH:MM):", time);
+    const newClassroom = prompt("Classroom:", classroom);
 
+    fetch(`/api/faculty/edit-class/${id}/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCSRFToken()
+        },
+        body: JSON.stringify({
+            subject: newSubject,
+            date: newDate,
+            time: newTime,
+            classroom: newClassroom
+        })
+    }).then(() => loadClasses());
+}
 // =============================
 // INIT
 // =============================
 document.addEventListener("DOMContentLoaded", loadClasses);
+async function deleteClass(id) {
+    if (!confirm("Delete this class?")) return;
+
+    await fetch(`/api/faculty/delete-class/${id}/`, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCSRFToken()
+        }
+    });
+
+    loadClasses();
+}
+
 
 </script>
 </body>

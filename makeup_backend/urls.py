@@ -39,4 +39,6 @@ urlpatterns = [
     # 🤖 AI APIs
     # ==========================
     path('api/ai/analytics/', views.ai_analytics, name='ai_analytics'),
+    path('api/faculty/delete-class/<int:class_id>/', views.delete_class, name='delete_class'),
+    path('api/faculty/edit-class/<int:class_id>/', views.edit_class, name='edit_class'),
 ]

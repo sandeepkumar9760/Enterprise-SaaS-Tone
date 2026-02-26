@@ -37,20 +37,19 @@ import uuid
 from django.db import models
 
 
+from django.db import models
+from django.utils import timezone
+from datetime import datetime
+import uuid
+
+
 class MakeUpClass(models.Model):
     subject = models.CharField(max_length=100)
     classroom = models.CharField(max_length=50)
     date = models.DateField()
     time = models.TimeField()
-    description = models.TextField(blank=True, null=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
-
-    remedial_code = models.CharField(
-        max_length=20,
-        unique=True,
-        editable=False
-    )
+    remedial_code = models.CharField(max_length=20, unique=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.remedial_code:
@@ -59,6 +58,17 @@ class MakeUpClass(models.Model):
 
     def generate_code(self):
         return "RC-" + uuid.uuid4().hex[:6].upper()
+
+    @property
+    def status(self):
+        class_datetime = datetime.combine(self.date, self.time)
+
+        # Make timezone-aware comparison
+        class_datetime = timezone.make_aware(class_datetime)
+
+        if class_datetime < timezone.now():
+            return "Expired"
+        return "Active"
 
     def __str__(self):
         return f"{self.subject} - {self.remedial_code}"
