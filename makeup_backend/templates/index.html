@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -159,10 +160,10 @@ tr:last-child td { border-bottom: none; }
       </div>
       <nav>
         <ul class="sidebar-nav">
-          <li><a href="index.html" class="nav-item active"><span class="nav-icon">📊</span><span>Dashboard</span></a></li>
-          <li><a href="faculty.html" class="nav-item"><span class="nav-icon">👨‍🏫</span><span>Faculty Control</span></a></li>
-          <li><a href="student.html" class="nav-item"><span class="nav-icon">👨‍🎓</span><span>Student Portal</span></a></li>
-          <li><a href="ai-insights.html" class="nav-item"><span class="nav-icon">🤖</span><span>AI Insights</span></a></li>
+          <li><a href="{% url 'dashboard' %}" class="nav-item"><span>📊</span><span>Dashboard</span></a></li>
+          <li><a href="{% url 'faculty' %}" class="nav-item"><span>👨‍🏫</span><span>Faculty Control</span></a></li>
+          <li><a href="{% url 'student' %}" class="nav-item"><span>👨‍🎓</span><span>Student Portal</span></a></li>
+          <li><a href="{% url 'ai' %}" class="nav-item active"><span>🤖</span><span>AI Insights</span></a></li>
         </ul>
       </nav>
     </aside>
